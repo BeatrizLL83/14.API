@@ -17,6 +17,7 @@ export const EnvSchema = z.object({
 export type Env = z.infer<typeof EnvSchema>;
 
 export let env: Env;
+
 try {
   env = EnvSchema.parse(process.env);
   const log = debug(`${env.PROJECT_NAME}:env`);
