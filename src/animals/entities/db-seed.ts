@@ -1,18 +1,18 @@
-import type { Pool } from "pg";
-import { env } from "../../config/env.ts";
+import type { Pool } from 'pg';
+import { env } from '../../config/env.ts';
 import debug from 'debug';
-import { connectDB } from "../../config/db-config.ts";
+import { connectDB } from '../../config/db-config.ts';
 import { fileURLToPath } from 'url';
 
 const log = debug(`${env.PROJECT_NAME}:seed`);
-log("Loading seed...");
+log('Loading seed...');
 
 export const seedAnimalsDB = async (pool: Pool) => {
-    log("Seeding to database...");
+  log('Seeding to database...');
 
-    await pool.query(`DROP TABLE IF EXISTS animals;`);
-    await pool.query(
-        `CREATE TABLE IF NOT EXISTS animals (
+  await pool.query(`DROP TABLE IF EXISTS animals;`);
+  await pool.query(
+    `CREATE TABLE IF NOT EXISTS animals (
             id SERIAL PRIMARY KEY,
             name VARCHAR(255) NOT NULL,
             english_name VARCHAR(255) NOT NULL,
@@ -24,9 +24,10 @@ export const seedAnimalsDB = async (pool: Pool) => {
             group_name VARCHAR(255),
             image TEXT
         );
-    `);
+    `,
+  );
 
-    await pool.query(`
+  await pool.query(`
         INSERT INTO animals (name, english_name, sci_name, diet, lifestyle, location, slogan, group_name, image)
         VALUES 
         ('Guepardo', 'Cheetah', 'Acinonyx jubatus', 'Carnívoro', 'Diurno', 'África', 'El mamífero terrestre más rápido del mundo', 'Felinos', 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Cheetah_%28Acinonyx_jubatus%29_female_2.jpg/640px-Cheetah_%28Acinonyx_jubatus%29_female_2.jpg'),
@@ -41,21 +42,20 @@ export const seedAnimalsDB = async (pool: Pool) => {
         ('Oso Polar', 'Polar Bear', 'Ursus maritimus', 'Carnívoro', 'Diurno', 'Ártico', 'El carnívoro terrestre más grande del mundo', 'Mamíferos', 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Polar_Bear_-_Alaska_%28cropped%29.jpg/800px-Polar_Bear_-_Alaska_%28cropped%29.jpg'),
         ('Cebra', 'Zebra', 'Equus quagga', 'Herbívoro', 'Diurno', 'Africa', 'El animal más rayado del mundo', 'Mamíferos', 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Equus_quagga_burchellii_-_Etosha%2C_2014.jpg/640px-Equus_quagga_burchellii_-_Etosha%2C_2014.jpg')
     `);
-}
+};
 
-// Run seed if this file is executed directly ha sido una ejecución del script
-const currentFilePath = fileURLToPath(import.meta.url); //en qué fichero estoy (db-seed) no se ejecuta
-const processFilePath = process.argv[1]; //quien se ha ejecutado(el index.css)
+// Run seed if this file is executed directly
+const currentFilePath = fileURLToPath(import.meta.url);
+const processFilePath = process.argv[1];
 
-//se ejecuta siempre que sea un Script, se ejecuta la funcion conectadote a la base de datos
 if (currentFilePath === processFilePath) {
-    seedAnimalsDB(await connectDB())
+  seedAnimalsDB(await connectDB())
     .then(() => {
-        log("Seed completed successfully.")
-        process.exit(0)
+      log('Seed completed successfully.');
+      process.exit(0);
     })
     .catch((error) => {
-        console.error(error)
-        process.exit(1)
-    })
+      console.error(error);
+      process.exit(1);
+    });
 }

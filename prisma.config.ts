@@ -3,22 +3,22 @@
 import 'dotenv/config';
 import { defineConfig } from 'prisma/config';
 
-// const dbURL =
-//   process.env['DATABASE_URL'] ??
-//   `postgresql://${process.env['PGUSER']}:${process.env['PGPASSWORD']}
-// @${process.env['PGHOST']}:${process.env['PGPORT']}
-// /${process.env['PGDATABASE']}?schema=public`;
+const dbURL =
+  process.env['DATABASE_URL'] ??
+  `postgresql://${process.env['PGUSER']}:${process.env['PGPASSWORD']}
+@${process.env['PGHOST']}:${process.env['PGPORT']}
+/${process.env['PGDATABASE']}?schema=public`;
 
-// console.log("Database URL:", dbURL)
-
-console.log("Database URL:",  process.env['DATABASE_URL'] )
+console.log('Database URL:', dbURL);
 
 export default defineConfig({
   schema: 'prisma/schema.prisma',
   migrations: {
     path: 'prisma/migrations',
+    seed: 'node --env-files=.env ./src/animals/entities/db-seed.ts',
   },
   datasource: {
-    url: process.env['DATABASE_URL'] as string
+    // url: process.env["DATABASE_URL"],
+    url: dbURL,
   },
 });

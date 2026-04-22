@@ -1,46 +1,35 @@
-import { Router } from 'express';
-import { env } from '../../config/env.ts';
+import { env } from './env.ts';
 import debug from 'debug';
-import type { AnimalsController } from '../controllers/animals.ts';
-import { validateBody, validateId } from '../../middleware/validations.ts';
-import { AnimalCreateSchema, AnimalUpdateSchema } from '../entities/animal.ts';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '../../generated/prisma/client.ts';
 
-const log = debug(`${env.PROJECT_NAME}:router:animal`);
-log('Loading animal router...');
+const log = debug(`${env.PROJECT_NAME}:configDB`);
 
-export class AnimalsRouter {
-  private _router: Router;
-  private controller: AnimalsController;
-  constructor(controller: AnimalsController) {
-    log('Starting animal router...');
-    this.controller = controller;
-    this._router = Router();
+log('Loaded database connection...');
 
-    this._router.get('/', this.controller.getAllAnimals.bind(this.controller));
-    this._router.get(
-      '/:id',
-      validateId(),
-      this.controller.getAnimalById.bind(this.controller),
-    );
-    this._router.post(
-      '/',
-      validateBody(AnimalCreateSchema),
-      this.controller.createAnimal.bind(this.controller),
-    );
-    this._router.patch(
-      '/:id',
-      validateId(),
-      validateBody(AnimalUpdateSchema),
-      this.controller.updateAnimal.bind(this.controller),
-    );
-    this._router.delete(
-      '/:id',
-      validateId(),
-      this.controller.deleteAnimal.bind(this.controller),
-    );
-  }
+export const connectDB = async () => {
+    const adapter = new PrismaPg({
+        user: env.PGUSER,
+        password: env.PGPASSWORD,
+        host: env.PGHOST,
+        port: env.PGPORT,
+        database: env.PGDATABASE,
+    });
+    const prisma = new PrismaClient({
+        adapter,
+    });
 
-  get router() {
-    return this._router;
-  }
-}
+    try {
+        await prisma.$connect();
+        const [info] = (await prisma.$queryRaw`SELECT current_database()`) as {
+            current_database: string;
+        }[];
+        log('Database connection established successfully.');
+        log('Connected to database:', info?.current_database);
+        prisma.$disconnect();
+    } catch (error) {
+        log('Error connecting to the database:', error);
+        throw error;
+    }
+    return prisma;
+};

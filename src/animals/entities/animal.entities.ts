@@ -1,4 +1,4 @@
-import { env } from '../../config/env.ts';
+import { env } from "../.././config/env.ts";
 import debug from 'debug';
 const log = debug(`${env.PROJECT_NAME}:entity:animal`);
 log('Loaded module');
@@ -6,19 +6,19 @@ log('Loaded module');
 import { z } from 'zod';
 
 export const AnimalSchema = z.object({
-  id: z.string(),
-  name: z.string().nonempty(),
-  englishName: z.string().nonempty(),
-  sciName: z.string().nonempty(),
-  group: z.string().nonempty(),
-  image: z.string().url(),
-  diet: z.string(),
-  lifestyle: z.enum(['Diurno', 'Nocturno']),
-  location: z.string(),
-  slogan: z.string(),
+    id: z.string(),
+    name: z.string().nonempty(),
+    englishName: z.string().nonempty(),
+    sciName: z.string().nonempty(),
+    group: z.string().nonempty(),
+    image: z.string().url(),
+    diet: z.string(),
+    lifestyle: z.enum(['Diurno', 'Nocturno']),
+    location: z.string(),
+    slogan: z.string(),
 });
 
-// extract the inferred type, este es el esquema de ZOD:
+// extract the inferred type
 export type Animal = z.infer<typeof AnimalSchema>;
 // {
 //     id: string;

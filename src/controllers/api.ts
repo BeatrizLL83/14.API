@@ -15,19 +15,19 @@ const { data, content } = matter(readme);
 
 const tokens = marked.lexer(content);
 const listItems = tokens.filter((token) => token.type === 'list') as {
-  items: { text: string }[];
+    items: { text: string }[];
 }[];
 
 const endpoints = listItems.flatMap((list) =>
-  list.items.map((item) => item.text),
+    list.items.map((item) => item.text),
 );
 
 export const apiController = (_req: Request, res: Response) => {
-  log('Received request to /api endpoint');
-  return res.json({
-    message: 'Welcome to the API',
-    title: data.title,
-    description: data.description,
-    endpoints,
-  });
+    log('Received request to /api endpoint');
+    return res.json({
+        message: 'Welcome to the API',
+        title: data.title,
+        description: data.description,
+        endpoints,
+    });
 };
