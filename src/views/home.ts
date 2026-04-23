@@ -3,7 +3,7 @@ import { env } from '../config/env.ts';
 import debug from 'debug';
 import { readFile } from 'fs/promises';
 import { marked } from 'marked';
-import matter from 'gray-matter';
+import matter from "gray-matter";
 
 const log = debug(`${env.PROJECT_NAME}:home-view`);
 
@@ -15,8 +15,8 @@ const html = marked.parse(content);
 const title = env.PROJECT_NAME || 'Home';
 
 export class HomeView {
-  static render = () => {
-    const template = /*html*/ `
+    static render = () => {
+        const template = /*html*/ `
         <!doctype html>
         <html lang="en">
         <head>
@@ -41,7 +41,7 @@ export class HomeView {
         </body>
         </html>
         `;
-    log('Rendering home view template...');
-    return template;
-  };
+        log('Rendering home view template...');
+        return template;
+    };
 }

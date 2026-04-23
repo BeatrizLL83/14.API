@@ -1,67 +1,54 @@
 import { env } from "./config/env.ts";
 import debug from 'debug';
-import express from "express";
-import morgan from "morgan";
-import cors from "cors";
+import { connectDB } from "./config/db-config.ts";
+import { createServer } from "node:http";
+import { createApp } from "./app.ts";
 
-// import { animalRouter } from "./animals/routers/animal.fn.router.ts";
-import { customHeaders } from "./middleware/customs.ts";
-import { HomeView } from "./views/home.ts";
-import { apiController } from "./controllers/api.ts";
-import { HttpError } from "./errors/http-error.ts";
-import { errorHandler } from "./middleware/error-handler.ts";
-import { AnimalsRouter } from "./animals/routers/animals.router.ts";
-import { AnimalsRepo } from "./animals/repositories/animal.repo.ts";
-import { AnimalsController } from "./animals/controllers/animals.controllers.ts";
-import type { PrismaClient } from "../generated/prisma/client.ts";
+const log = debug(`${env.PROJECT_NAME}:index`);
+log("Starting API server...");
 
+const prisma = await connectDB()
 
-export const createApp = (prisma: PrismaClient) => {
-    const log = debug(`${env.PROJECT_NAME}:app`);
-    log("Starting Express app...");
-    const app = express();
-    app.disable('x-powered-by');
-    // Middleware Utilities
-    app.use(morgan('dev'));
-    app.use(
-        cors({
-            origin: '*',
-        }),
-    );
-    app.use(express.json());
-    app.use(express.urlencoded());
-    app.use(customHeaders(env.PROJECT_NAME));
+const port = env.PORT || 3000;
+const app = createApp(prisma);
 
-    app.use(express.static('public'));
+const server = createServer(app);
+log('Server created');
 
-    app.use('/health', (_req, res) => {
-        return res.json({
-            status: 'ok',
-            timestamp: new Date().toISOString(),
-        });
-    });
+const listenManager = () => {
+    const addr = server.address();
+    if (addr === null) return;
+    let bind;
+    if (typeof addr === 'string') {
+        bind = 'pipe ' + addr;
+    } else {
+        bind =
+            addr.address === '::'
+                ? `http://localhost:${addr?.port}`
+                : `${addr.address}:${addr?.port}`;
+    }
+    if (env.NODE_ENV !== 'dev') {
+        console.log(`Server listening on ${bind}`);
+    } else {
+        log(`Servidor escuchando en ${bind}`);
+    }
+};
 
-     app.get('/', async (_req, res) => {
-        log('Received request to root endpoint');
-        return res.send(HomeView.render());
-    });
+// const errorManager = (error: HttpError, response: ServerResponse) => {
+//     if (!('statusCode' in error)) {
+//         error = {
+//             ...new Error('Internal Server Error'),
+//             status: 500,
+//             statusMessage: 'Internal Server Error',
+//         };
+//     }
+//     const errorInfo = `Error ${error.status}: ${error.statusMessage}`;
+//     response.statusCode = error.status;
+//     response.statusMessage = error.statusMessage;
+//     log(errorInfo, error.message);
+//     response.end(errorInfo);
+// };
 
-    app.get('/api', apiController);
-
-    const appRepo = new AnimalsRepo(prisma);
-    const appController = new AnimalsController(appRepo);
-    const appRouter = new AnimalsRouter(appController);
-    app.use('/api/animals', appRouter.router);
-
-    // app.use('/api/animals', animalRouter(pool));
-
-    app.use((_req, _res, next) => {
-        log('Calling errorHandler for 404 error');
-        const error = new HttpError(404, 'Not Found', 'Resource not found');
-        next(error);
-    });
-
-    app.use(errorHandler);
-    
-    return app;
-}
+server.on('listening', listenManager);
+// server.on('error', errorManager);
+server.listen(port);
